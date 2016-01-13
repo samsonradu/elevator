@@ -57,7 +57,11 @@ var E = _react2.default.createClass({
                     { className: 'inner-block' },
                     btns
                 )
-            );else lvl = _react2.default.createElement('div', { className: 'level' });
+            );else lvl = _react2.default.createElement(
+                'div',
+                { className: 'level' },
+                i
+            );
 
             var classUp = _elevator2.default.get('outer', i, 'up') || self.state.running && self.state.running.level === i && self.state.running.type === 'outer' && self.state.running.direction === 'up' ? 'active' : '';
             var classDown = _elevator2.default.get('outer', i, 'down') || self.state.running && self.state.running.level === i && self.state.running.type === 'outer' && self.state.running.direction === 'down' ? 'active' : '';

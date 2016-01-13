@@ -40,7 +40,7 @@ const E = React.createClass({
             if (self.state.level === i)
                 lvl = <div className='level current'>{i}<div className='inner-block'>{btns}</div></div>;
             else 
-                lvl = <div className='level'></div>;
+                lvl = <div className='level'>{i}</div>;
 
             let classUp = elevator.get('outer', i, 'up') || 
                 (self.state.running && self.state.running.level === i && self.state.running.type === 'outer' && self.state.running.direction === 'up') ? 'active' : '';
