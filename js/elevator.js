@@ -33,12 +33,13 @@ class Elevator extends EventEmitter {
             'open' : true,
             'running' : null,
             'inner' : [], //one queue for the commands triggered inside the elevator (these are more important than outside ones)
-            'outer' : [], //one queue for the commands triggered frmo the outside
+            'outer' : [], //one queue for the commands triggered from the outside
         };
     }
 
     /**
-     * Offload a queued command - for example when we have to do a stop somewhere 
+     * Offload a queued command - for example when we have to do an in-between stop, 
+     * we need to remove the corresponding command even if it's not the first in line 
      *
      * @param string type (inner/outer)
      * @param integer level
