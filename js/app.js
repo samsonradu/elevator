@@ -37,8 +37,10 @@ const E = React.createClass({
                 btns.push(<a className={btnClass} key={j} onClick={self.handleCommand} data-type='inner' data-level={j}>{j}</a>);
             }
 
+            let levelClass = self.state.open ? "open" : "";
+
             if (self.state.level === i)
-                lvl = <div className='level current'>{i}<div className='inner-block'>{btns}</div></div>;
+                lvl = <div className={levelClass + ' level current'}>{i}<div className='inner-block'>{btns}</div></div>;
             else 
                 lvl = <div className='level'>{i}</div>;
 
@@ -48,7 +50,7 @@ const E = React.createClass({
                 (self.state.running && self.state.running.level === i && self.state.running.type === 'outer' && self.state.running.direction === 'down') ? 'active' : '';
 
             arr.push(
-                <div className='block' key={i}>
+                <div className="block" key={i}>
                     <div className='outer-block'>
                         <a className={classUp} onClick={self.handleCommand} data-type='outer' data-level={i} data-direction='up'><i className='glyphicon glyphicon-chevron-up'></i></a>
                         <br></br>

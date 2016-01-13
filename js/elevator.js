@@ -30,9 +30,10 @@ class Elevator extends EventEmitter {
         this.levels = levels;
         this.state = {
             'level' : 0,
+            'open' : true,
             'running' : null,
-            'inner' : [],
-            'outer' : [],
+            'inner' : [], //one queue for the commands triggered inside the elevator (these are more important than outside ones)
+            'outer' : [], //one queue for the commands triggered frmo the outside
         };
     }
 
@@ -107,17 +108,26 @@ class Elevator extends EventEmitter {
             });
     }
 
+    /**
+     * Moves the elevator towards a target level, 1 step at a time. It calls itself recursively if the destination hasn't been reached
+     * or if it's optimal to stop and pick/drop someone
+     * @param integer level
+     * @param function cb the "move" function calling itself
+     *
+     */ 
     move(level, cb){
         var self = this;
         //if we reached our level 
         if (this.state.level === level){
             //every time we reach a desired level we have to wait a couple of seconds for 'inner' commands 
             console.log("[INFO] Opening doors at destination: " + level);
+            self.state.open = true; 
             setTimeout(function(){
                 self.state.running = null;
             }, DOOR_TIMEOUT);
             return;
         }
+        this.state.open = false;
         var direction = this.state.level > level ? 'down' : 'up';
         console.log("[INFO] Going " + direction);
 
@@ -129,6 +139,7 @@ class Elevator extends EventEmitter {
             var found = self.get('inner', self.state.level) || self.get('outer', self.state.level, direction); 
             if (found){
                 console.log("[INFO] Opening doors at level: " + self.state.level);
+                this.state.open = true;
                 self.offload(found.type, self.state.level, found.direction);
                 setTimeout(function(){
                     cb(level, cb);
@@ -141,6 +152,9 @@ class Elevator extends EventEmitter {
         }, LEVEL_TIMEOUT);
     }
 
+    /**
+     * Run the evaluator every 100ms
+     */ 
     init(){
         var self = this;
         setInterval(function(){

@@ -17,6 +17,9 @@ a.active {
     background-color: #D0D0D0;
     position: relative;
 }
+.level.open {
+    background-color: #95CE5E !important;
+}
 .level.current {
     background-color: #00D8FF;
 }

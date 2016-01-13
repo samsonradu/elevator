@@ -48,9 +48,11 @@ var E = _react2.default.createClass({
                 ));
             }
 
+            var levelClass = self.state.open ? "open" : "";
+
             if (self.state.level === i) lvl = _react2.default.createElement(
                 'div',
-                { className: 'level current' },
+                { className: levelClass + ' level current' },
                 i,
                 _react2.default.createElement(
                     'div',
@@ -167,10 +169,10 @@ var Elevator = (function (_EventEmitter) {
         _this.levels = levels;
         _this.state = {
             'level': 0,
+            'open': true,
             'running': null,
-            'inner': [],
-            'outer': []
-        };
+            'inner': [], //one queue for the commands triggered inside the elevator (these are more important than outside ones)
+            'outer': [] };
         return _this;
     }
 
@@ -186,6 +188,7 @@ var Elevator = (function (_EventEmitter) {
 
     _createClass(Elevator, [{
         key: 'offload',
+        //one queue for the commands triggered frmo the outside
         value: function offload(type, level, direction) {
             if (type === 'inner') this.state.inner = this.state.inner.filter(function (item) {
                 return item.level !== level;
@@ -244,6 +247,15 @@ var Elevator = (function (_EventEmitter) {
                 'type': type
             });
         }
+
+        /**
+         * Moves the elevator towards a target level, 1 step at a time. It calls itself recursively if the destination hasn't been reached
+         * or if it's optimal to stop and pick/drop someone
+         * @param integer level
+         * @param function cb the "move" function calling itself
+         *
+         */
+
     }, {
         key: 'move',
         value: function move(level, cb) {
@@ -252,11 +264,13 @@ var Elevator = (function (_EventEmitter) {
             if (this.state.level === level) {
                 //every time we reach a desired level we have to wait a couple of seconds for 'inner' commands
                 console.log("[INFO] Opening doors at destination: " + level);
+                self.state.open = true;
                 setTimeout(function () {
                     self.state.running = null;
                 }, DOOR_TIMEOUT);
                 return;
             }
+            this.state.open = false;
             var direction = this.state.level > level ? 'down' : 'up';
             console.log("[INFO] Going " + direction);
 
@@ -268,6 +282,7 @@ var Elevator = (function (_EventEmitter) {
                 var found = self.get('inner', self.state.level) || self.get('outer', self.state.level, direction);
                 if (found) {
                     console.log("[INFO] Opening doors at level: " + self.state.level);
+                    this.state.open = true;
                     self.offload(found.type, self.state.level, found.direction);
                     setTimeout(function () {
                         cb(level, cb);
@@ -278,6 +293,11 @@ var Elevator = (function (_EventEmitter) {
                 }
             }, LEVEL_TIMEOUT);
         }
+
+        /**
+         * Run the evaluator every 100ms
+         */
+
     }, {
         key: 'init',
         value: function init() {
