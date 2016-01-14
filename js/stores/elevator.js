@@ -34,12 +34,13 @@ class Elevator extends EventEmitter {
             'open' : true,
             'running' : null,
             'inner' : [], //one queue for the commands triggered inside the elevator (these are more important than outside ones)
-            'outer' : [], //one queue for the commands triggered frmo the outside
+            'outer' : [], //one queue for the commands triggered from the outside
         };
     }
 
     /**
-     * Offload a queued command - for example when we have to do a stop somewhere 
+     * Offload a queued command - for example when we have to do an in-between stop, 
+     * we need to remove the corresponding command even if it's not the first in line 
      *
      * @param string type (inner/outer)
      * @param integer level
@@ -168,8 +169,8 @@ class Elevator extends EventEmitter {
      *  - When the destination is reached we release the "lock" and the elevator can pick up further commands
      *  - The inner queue has priority, since we don't want our clients to be moved around
      *  - Once we picked a command we call the "@move" method with the requested level as a parameter
-     *  - The move() method goes step by step calls itself recursively until the requested level has been reached. Only inner commands can be interrupted by other 
-     *  "inner" commands. For example:
+     *  - The move() method goes step by step calls itself recursively until the requested level has been reached. Commands can be interrupted by other 
+     *  "inner" commands if they make sense. For example:
      *      If 2 people get in the elevator at level 3, then, one presses button 0, after that the other presses button 1. 
      *      It's the command to 0 that's picked up, however at each level we check if there are other inner commands queued that we can take care of.
      *      If yes, we just delay the next move call by 5 seconds and "open the doors". 
