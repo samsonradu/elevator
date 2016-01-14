@@ -1,5 +1,6 @@
 import React from 'react'
-import elevator from './elevator.js';
+import elevator from './stores/elevator.js';
+import Actions from './actions/command.js';
 import { render } from 'react-dom'
 
 const E = React.createClass({
@@ -16,7 +17,7 @@ const E = React.createClass({
         let type = $el.data('type');
         let level = $el.data('level');
         let direction = $el.data('direction');
-        elevator.command(type, level, direction);
+        Actions.commandAction(type, level, direction);
     },
 
     handleState(){

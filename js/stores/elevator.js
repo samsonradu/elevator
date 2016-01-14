@@ -1,28 +1,29 @@
+import {ActionTypes} from '../actions/types.js';
+
 var EventEmitter = require('events').EventEmitter;
-var Dispatcher = require('./dispatcher.js');
+var Dispatcher = require('../dispatcher/dispatcher.js');
 
 const LEVEL_TIMEOUT = 3000; //time to move one floor
 const DOOR_TIMEOUT = 5000; //time to wait for inner commands when doors open
-const CHANGE_EVENT = 'change';
 
 class Elevator extends EventEmitter {
 
     emitChange() {
-        this.emit(CHANGE_EVENT);
+        this.emit(ActionTypes.UPDATE);
     }
     
     /**
      * @param {function} callback
      */
     addChangeListener(callback) {
-        this.on(CHANGE_EVENT, callback);
+        this.on(ActionTypes.UPDATE, callback);
     }
 
     /**
      * @param {function} callback
      */
     removeChangeListener(callback) {
-        this.removeListener(CHANGE_EVENT, callback);
+        this.removeListener(ActionTypes.UPDATE, callback);
     }
 
     constructor(levels){
@@ -89,7 +90,6 @@ class Elevator extends EventEmitter {
         if (level > (this.levels - 1) || level < 0) //invalid command
             return;
         if (level === this.state.level){
-            //console.log("[INFO] Opening doors...");
             return;
         }
 
@@ -177,7 +177,7 @@ class Elevator extends EventEmitter {
      */ 
     evaluate(){
         Dispatcher.dispatch({
-            actionType: 'CHANGE_EVENT'
+            actionType: ActionTypes.UPDATE
         });
 
         //we need to see if we can pick new instruction from the queues
@@ -206,7 +206,15 @@ let elevator = new Elevator();
 elevator.init();
 
 Dispatcher.register(function(action) {
-    elevator.emitChange();  
+    switch (action.actionType){
+        case ActionTypes.UPDATE: 
+            elevator.emitChange();  
+            break;
+        case ActionTypes.COMMAND:
+            console.log(action);
+            elevator.command(action.type, action.level, action.direction);
+            break;
+    }
 });
 
 
