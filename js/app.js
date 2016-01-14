@@ -80,3 +80,5 @@ const E = React.createClass({
 render((
     <E levels='6'/>
 ), document.getElementById("content"))
+
+Consolify.consolify(document.getElementById("console"));

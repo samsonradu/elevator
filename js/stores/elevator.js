@@ -212,7 +212,6 @@ Dispatcher.register(function(action) {
             elevator.emitChange();  
             break;
         case ActionTypes.COMMAND:
-            console.log(action);
             elevator.command(action.type, action.level, action.direction);
             break;
     }
