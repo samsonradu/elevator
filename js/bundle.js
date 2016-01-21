@@ -19548,7 +19548,7 @@ var Elevator = (function (_EventEmitter) {
                 var found = self.get('inner', self.state.level) || self.get('outer', self.state.level, direction);
                 if (found) {
                     console.log("[INFO] Opening doors at level: " + self.state.level);
-                    this.state.open = true;
+                    self.state.open = true;
                     self.offload(found.type, self.state.level, found.direction);
                     setTimeout(function () {
                         cb(level, cb);
