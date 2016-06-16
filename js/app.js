@@ -75,8 +75,6 @@ const E = React.createClass({
     }
 });
 
-    // Finally, we render a <Router> with some <Route>s.
-    // It does all the fancy routing stuff for us.
 render((
     <E levels='6'/>
 ), document.getElementById("content"))
