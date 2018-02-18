@@ -30,7 +30,8 @@ module.exports = {
 module.exports = {
     ActionTypes: {
         COMMAND: 'USER_COMMAND',
-        UPDATE: 'UPDATE'
+        UPDATE: 'UPDATE',
+        EVAL: 'EVAL'
     }
 };
 
@@ -19456,6 +19457,14 @@ var Elevator = function (_EventEmitter) {
             'inner': [], //one queue for the commands triggered inside the elevator (these are more important than outside ones)
             'outer': [] //one queue for the commands triggered from the outside
         };
+
+        var self = _this;
+        _this.on(_types.ActionTypes.EVAL, function () {
+            setTimeout(function () {
+                console.log("Calling evaluate from event");
+                self.evaluate();
+            }, 1000);
+        });
         return _this;
     }
 
@@ -19529,6 +19538,8 @@ var Elevator = function (_EventEmitter) {
                 'direction': direction,
                 'type': type
             });
+
+            if (!this.state.running) this.emit(_types.ActionTypes.EVAL);
         }
 
         /**
@@ -19543,19 +19554,37 @@ var Elevator = function (_EventEmitter) {
         key: 'move',
         value: function move(level, cb) {
             var self = this;
+
+            Dispatcher.dispatch({
+                actionType: _types.ActionTypes.UPDATE
+            });
+
             //if we reached our level 
             if (this.state.level === level) {
                 //every time we reach a desired level we have to wait a couple of seconds for 'inner' commands 
                 console.log("[INFO] Opening doors at destination: " + level);
                 self.state.open = true;
+
+                Dispatcher.dispatch({
+                    actionType: _types.ActionTypes.UPDATE
+                });
+
                 setTimeout(function () {
                     self.state.running = null;
+
+                    if (self.state.inner.length > 0 || self.state.outer.length > 0) {
+                        self.emit(_types.ActionTypes.EVAL);
+                    }
                 }, DOOR_TIMEOUT);
                 return;
             }
             this.state.open = false;
             var direction = this.state.level > level ? 'down' : 'up';
             console.log("[INFO] Going " + direction);
+
+            Dispatcher.dispatch({
+                actionType: _types.ActionTypes.UPDATE
+            });
 
             setTimeout(function () {
                 self.state.level += direction === 'up' ? 1 : -1;
@@ -19567,6 +19596,11 @@ var Elevator = function (_EventEmitter) {
                     console.log("[INFO] Opening doors at level: " + self.state.level);
                     self.state.open = true;
                     self.offload(found.type, self.state.level, found.direction);
+
+                    Dispatcher.dispatch({
+                        actionType: _types.ActionTypes.UPDATE
+                    });
+
                     setTimeout(function () {
                         cb(level, cb);
                     }, DOOR_TIMEOUT);
@@ -19575,19 +19609,6 @@ var Elevator = function (_EventEmitter) {
                     cb(level, cb);
                 }
             }, LEVEL_TIMEOUT);
-        }
-
-        /**
-         * Run the evaluator every 100ms
-         */
-
-    }, {
-        key: 'init',
-        value: function init() {
-            var self = this;
-            setInterval(function () {
-                self.evaluate();
-            }, 100);
         }
 
         /**
@@ -19611,9 +19632,6 @@ var Elevator = function (_EventEmitter) {
                 actionType: _types.ActionTypes.UPDATE
             });
 
-            //we need to see if we can pick new instruction from the queues
-            if (this.state.running !== null) return;
-
             //inner queue has priority
             if (this.state.inner.length) {
                 //we have people inner the elevator and they pressed buttons
@@ -19635,7 +19653,6 @@ var Elevator = function (_EventEmitter) {
 }(EventEmitter);
 
 var elevator = new Elevator();
-elevator.init();
 
 Dispatcher.register(function (action) {
     switch (action.actionType) {
