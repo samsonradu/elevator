@@ -11,7 +11,7 @@ class Elevator extends EventEmitter {
     emitChange() {
         this.emit(ActionTypes.UPDATE);
     }
-    
+ 
     /**
      * @param {function} callback
      */
@@ -28,6 +28,7 @@ class Elevator extends EventEmitter {
 
     constructor(levels){
         super();
+
         this.levels = levels;
         this.state = {
             'level' : 0,
@@ -36,6 +37,13 @@ class Elevator extends EventEmitter {
             'inner' : [], //one queue for the commands triggered inside the elevator (these are more important than outside ones)
             'outer' : [], //one queue for the commands triggered from the outside
         };
+
+        let self = this;
+        this.on(ActionTypes.EVAL, function(){
+            setTimeout(function(){
+                self.evaluate();
+            }, 1000);
+        });
     }
 
     /**
@@ -57,6 +65,7 @@ class Elevator extends EventEmitter {
             this.state.outer = this.state.outer.filter(function(item){
                 return item.level !== level || item.direction !== direction;
             });
+
     }
 
     /**
@@ -107,6 +116,9 @@ class Elevator extends EventEmitter {
                 'direction' : direction,
                 'type' : type
             });
+
+        if (!this.state.running)
+            this.emit(ActionTypes.EVAL);
     }
 
     /**
@@ -118,19 +130,37 @@ class Elevator extends EventEmitter {
      */ 
     move(level, cb){
         var self = this;
+
+        Dispatcher.dispatch({
+            actionType: ActionTypes.UPDATE
+        });
+
         //if we reached our level 
         if (this.state.level === level){
             //every time we reach a desired level we have to wait a couple of seconds for 'inner' commands 
             console.log("[INFO] Opening doors at destination: " + level);
             self.state.open = true; 
+
+            Dispatcher.dispatch({
+                actionType: ActionTypes.UPDATE
+            });
+
             setTimeout(function(){
                 self.state.running = null;
+
+                if (self.state.inner.length > 0 || self.state.outer.length > 0){
+                    self.emit(ActionTypes.EVAL);
+                }
             }, DOOR_TIMEOUT);
             return;
         }
         this.state.open = false;
         var direction = this.state.level > level ? 'down' : 'up';
         console.log("[INFO] Going " + direction);
+
+        Dispatcher.dispatch({
+            actionType: ActionTypes.UPDATE
+        });
 
         setTimeout(function(){
             self.state.level += (direction === 'up' ? 1 : -1);
@@ -142,6 +172,11 @@ class Elevator extends EventEmitter {
                 console.log("[INFO] Opening doors at level: " + self.state.level);
                 self.state.open = true;
                 self.offload(found.type, self.state.level, found.direction);
+
+                Dispatcher.dispatch({
+                    actionType: ActionTypes.UPDATE
+                });
+
                 setTimeout(function(){
                     cb(level, cb);
                 }, DOOR_TIMEOUT);
@@ -151,16 +186,6 @@ class Elevator extends EventEmitter {
                 cb(level, cb);
             }
         }, LEVEL_TIMEOUT);
-    }
-
-    /**
-     * Run the evaluator every 100ms
-     */ 
-    init(){
-        var self = this;
-        setInterval(function(){
-            self.evaluate();
-        }, 100);
     }
 
     /**
@@ -181,10 +206,6 @@ class Elevator extends EventEmitter {
             actionType: ActionTypes.UPDATE
         });
 
-        //we need to see if we can pick new instruction from the queues
-        if (this.state.running !== null)
-            return;
-
         //inner queue has priority
         if (this.state.inner.length) {
             //we have people inner the elevator and they pressed buttons
@@ -204,7 +225,6 @@ class Elevator extends EventEmitter {
 }
 
 let elevator = new Elevator();
-elevator.init();
 
 Dispatcher.register(function(action) {
     switch (action.actionType){
