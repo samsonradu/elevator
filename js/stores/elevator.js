@@ -105,25 +105,27 @@ class Elevator extends EventEmitter {
 
         console.log("[COMMAND][" + type.toUpperCase() + "] button to " + level + " pressed");
 
-        if (type === 'inner')
+        if (type === 'inner'){
             this.state.inner.push({
                 'level' : level,
                 'type' : type
             });
-        else 
+        }
+        else {
             this.state.outer.push({
                 'level' : level,
                 'direction' : direction,
                 'type' : type
             });
+        }
+
+
+        Dispatcher.dispatch({
+            actionType: ActionTypes.UPDATE
+        });
 
         if (!this.state.running){
             this.emit(ActionTypes.EVAL);
-        }
-        else {
-            Dispatcher.dispatch({
-                actionType: ActionTypes.UPDATE
-            });
         }
     }
 

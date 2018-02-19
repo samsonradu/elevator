@@ -19529,21 +19529,25 @@ var Elevator = function (_EventEmitter) {
 
             console.log("[COMMAND][" + type.toUpperCase() + "] button to " + level + " pressed");
 
-            if (type === 'inner') this.state.inner.push({
-                'level': level,
-                'type': type
-            });else this.state.outer.push({
-                'level': level,
-                'direction': direction,
-                'type': type
+            if (type === 'inner') {
+                this.state.inner.push({
+                    'level': level,
+                    'type': type
+                });
+            } else {
+                this.state.outer.push({
+                    'level': level,
+                    'direction': direction,
+                    'type': type
+                });
+            }
+
+            Dispatcher.dispatch({
+                actionType: _types.ActionTypes.UPDATE
             });
 
             if (!this.state.running) {
                 this.emit(_types.ActionTypes.EVAL);
-            } else {
-                Dispatcher.dispatch({
-                    actionType: _types.ActionTypes.UPDATE
-                });
             }
         }
 
