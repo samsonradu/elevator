@@ -19461,7 +19461,6 @@ var Elevator = function (_EventEmitter) {
         var self = _this;
         _this.on(_types.ActionTypes.EVAL, function () {
             setTimeout(function () {
-                console.log("Calling evaluate from event");
                 self.evaluate();
             }, 1000);
         });
@@ -19539,7 +19538,13 @@ var Elevator = function (_EventEmitter) {
                 'type': type
             });
 
-            if (!this.state.running) this.emit(_types.ActionTypes.EVAL);
+            if (!this.state.running) {
+                this.emit(_types.ActionTypes.EVAL);
+            } else {
+                Dispatcher.dispatch({
+                    actionType: _types.ActionTypes.UPDATE
+                });
+            }
         }
 
         /**

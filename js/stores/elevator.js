@@ -117,8 +117,14 @@ class Elevator extends EventEmitter {
                 'type' : type
             });
 
-        if (!this.state.running)
+        if (!this.state.running){
             this.emit(ActionTypes.EVAL);
+        }
+        else {
+            Dispatcher.dispatch({
+                actionType: ActionTypes.UPDATE
+            });
+        }
     }
 
     /**
