@@ -120,9 +120,12 @@ class Elevator extends EventEmitter {
         }
 
 
-        Dispatcher.dispatch({
-            actionType: ActionTypes.UPDATE
-        });
+        //update in the next event loop
+        setTimeout(function(){
+            Dispatcher.dispatch({
+                actionType: ActionTypes.UPDATE
+            });
+        }, 0);
 
         if (!this.state.running){
             this.emit(ActionTypes.EVAL);

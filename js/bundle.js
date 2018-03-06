@@ -19542,9 +19542,11 @@ var Elevator = function (_EventEmitter) {
                 });
             }
 
-            Dispatcher.dispatch({
-                actionType: _types.ActionTypes.UPDATE
-            });
+            setTimeout(function () {
+                Dispatcher.dispatch({
+                    actionType: _types.ActionTypes.UPDATE
+                });
+            }, 0);
 
             if (!this.state.running) {
                 this.emit(_types.ActionTypes.EVAL);
