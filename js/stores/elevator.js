@@ -158,13 +158,17 @@ class Elevator extends EventEmitter {
 
             setTimeout(function(){
                 self.state.running = null;
-
+                //anything else to do? 
                 if (self.state.inner.length > 0 || self.state.outer.length > 0){
                     self.emit(ActionTypes.EVAL);
                 }
             }, DOOR_TIMEOUT);
+            
+            //done here
             return;
         }
+        
+        //start moving towards the target
         this.state.open = false;
         var direction = this.state.level > level ? 'down' : 'up';
         console.log("[INFO] Going " + direction);
@@ -173,11 +177,12 @@ class Elevator extends EventEmitter {
             actionType: ActionTypes.UPDATE
         });
 
+        //the elevator needs to be realistic and have a certain delay between floors
         setTimeout(function(){
             self.state.level += (direction === 'up' ? 1 : -1);
             console.log("[INFO] Reaching " + self.state.level);
 
-            //if we need to make a middle stop we do it here, delaying to leave 
+            //if we need to make a middle stop we do it here, delaying our leave. It's possible that someone wants to get down or that someone from the outside is also going in the same direction so we pick them up
             var found = self.get('inner', self.state.level) || self.get('outer', self.state.level, direction); 
             if (found){
                 console.log("[INFO] Opening doors at level: " + self.state.level);
