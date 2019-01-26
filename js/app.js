@@ -32,7 +32,7 @@ const E = React.createClass({
             let btns = [];
             let lvl;
 
-            for (let j = this.props.levels-1; j >= 0; j--){
+            for (let j = 0; j < this.props.levels; j++){
                 let btnClass = elevator.get('inner', j, '') || 
                     (self.state.running && self.state.running.level === j && self.state.running.type === 'inner') ? 'active' : '';
                 btns.push(<a className={btnClass} key={j} onClick={self.handleCommand} data-type='inner' data-level={j}>{j}</a>);
@@ -76,7 +76,13 @@ const E = React.createClass({
 });
 
 render((
-    <E levels='6'/>
+    <E levels='7'/>
 ), document.getElementById("content"))
 
-Consolify.consolify(document.getElementById("console"));
+Consolify.init(function(args, type){
+    var el = document.getElementById("console");
+    if (typeof args !== "String"){
+        args = JSON.stringify(args);
+    }
+    $(el).append("<div>" + type + " " + args + "</div>");
+});

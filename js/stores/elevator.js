@@ -139,7 +139,7 @@ class Elevator extends EventEmitter {
      * @param function cb the "move" function calling itself
      *
      */ 
-    move(level, cb){
+    move(command, cb){
         var self = this;
 
         Dispatcher.dispatch({
@@ -147,9 +147,52 @@ class Elevator extends EventEmitter {
         });
 
         //if we reached our level 
-        if (this.state.level === level){
+        if (this.state.level === command.level){
+
+            // Optimisation! Can we do a longer run? 
+            // For instance if there s someone going down from a higher floor than this one, we can pick that one up first and service both levels
+            if (command.type === 'outer'){
+                var optimize = false;
+                if (command.direction === 'up'){
+                    //try to see if there are outer commands from below
+                    var matches = this.state.outer.filter(function(item){
+                        return item.level < command.level && item.direction === 'up';
+                    });
+                    matches.sort(function(a, b){
+                        return a.level < b.level ? -1 : 1;
+                    }); 
+                    console.log("Matches for up", matches);
+                    optimize = matches.shift();
+
+                }
+                else {
+                    //try to see if there are outer commands from above
+                    var matches = this.state.outer.filter(function(item){
+                        return item.level > command.level && item.direction === 'down';
+                    });
+                    matches.sort(function(a, b){
+                        return a.level > b.level ? -1 : 1;
+                    }); 
+                    console.log("Matches for down", matches);
+                    optimize = matches.shift();
+                } 
+
+                if (optimize){
+                    this.state.outer = this.state.outer.filter(function(item){
+                        return item.level !== optimize.level;
+                    });
+
+                    console.log("Outer state after optimization", this.state.outer);
+                    //put current command back at the beginning of the queue 
+                    this.state.outer = [command].concat(this.state.outer);
+                    this.move(optimize, cb);
+                    return;
+                }
+            }
+
+
             //every time we reach a desired level we have to wait a couple of seconds for 'inner' commands 
-            console.log("[INFO] Opening doors at destination: " + level);
+            console.log("[INFO] Opening doors at destination: " + command.level);
             self.state.open = true; 
 
             Dispatcher.dispatch({
@@ -166,7 +209,7 @@ class Elevator extends EventEmitter {
             return;
         }
         this.state.open = false;
-        var direction = this.state.level > level ? 'down' : 'up';
+        var direction = this.state.level > command.level ? 'down' : 'up';
         console.log("[INFO] Going " + direction);
 
         Dispatcher.dispatch({
@@ -189,12 +232,12 @@ class Elevator extends EventEmitter {
                 });
 
                 setTimeout(function(){
-                    cb(level, cb);
+                    cb(command, cb);
                 }, DOOR_TIMEOUT);
             }
             else {
                 //we call this same method recursively until level is reached
-                cb(level, cb);
+                cb(command, cb);
             }
         }, LEVEL_TIMEOUT);
     }
@@ -217,20 +260,25 @@ class Elevator extends EventEmitter {
             actionType: ActionTypes.UPDATE
         });
 
+        if (this.state.running){
+            //nothing to pick;
+            return;
+        }
+
         //inner queue has priority
         if (this.state.inner.length) {
             //we have people inner the elevator and they pressed buttons
             var current = this.state.inner.shift();
             console.log("[PROCESS][INNER] Picked command to " + current.level);
             this.state.running = current;
-            this.move(current.level, this.move.bind(this));
+            this.move(current, this.move.bind(this));
         }
         else if (this.state.outer.length){
             //elevator is called from the outer, lets pick up the command
             var current = this.state.outer.shift();
             console.log("[PROCESS][OUTER] Picked command to " + current.level);
             this.state.running = current;
-            this.move(current.level, this.move.bind(this));
+            this.move(current, this.move.bind(this));
         }
     }
 }

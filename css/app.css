@@ -9,11 +9,11 @@ a.active {
 }
 .level {
     float: left;
-    width: 114px;
+    width: 300px;
     text-align: center;
-    height: 114px;
-    line-height: 114px;
-    font-size: 48px;
+    height: 80px;
+    border-bottom: 1px solid #333;
+    font-size: 24px;
     background-color: #D0D0D0;
     position: relative;
 }
@@ -25,27 +25,32 @@ a.active {
 }
 .clear {
     clear:both;
-    height: 5px;
-    margin-top: 5px;
 }
 .outer-block {
-    padding-top: 40px;
-    padding-bottom: 40px;
+    padding-top: 20px;
+    padding-bottom: 20px;
     padding-right: 20px;
     padding-left: 20px;
-    float: left;
+    position: absolute; left: -20px;
 }
 .inner-block {
-    margin-top: 2px;
     position: absolute;
-    top: 0px;
-    left: 2px;
-    width: 20px;
+    height: 20px;
+    line-height: 24px;
+    bottom: 15px;
+    left: 5px;
 }
 .inner-block a {
-    font-size: 14px;
-    line-height: 18px;
-    display: block;
+    font-size: 16px;
+    line-height: 12px;
+    margin-right: 2px;
     background-color: white;
-    border-radius: 14px;
+    border-radius: 10px;
+	padding-left: 6px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-right: 6px;
+}
+.inner-block a:hover {
+    text-decoration: none;
 }

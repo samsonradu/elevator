@@ -1,33 +1,38 @@
-var Consolify = {
-  consolify: function(el){
-    var oLog = console.log;
-    var oWarn = console.warn;
-    var oErr = console.error;
+/**
+ * Subscribe to the console output 
+ *
+ * @author Samson Radu
+ */ 
+let Consolify = {
+    init: function(cb){
+        if (typeof cb !== 'function'){
+            console.error("You must pass a callback function");
+            return false;
+        }
 
-    console.log = console.info = function(message){
-      if (oLog)
-        oLog.call(console, message);
-      write(message, el, "info");
-    };
- 
-    console.warn = function(message){
-      if (oWarn)
-        oWarn.call(console, message);
-      write(message, el, "warn");
-    };
+        let oLog = console.log;
+        let oWarn = console.warn;
+        let oErr = console.error;
 
-    console.error = function(message){
-      if (oErr)
-        oErr.call(console, message);
-      write(message, el, "error");
-    };
+        console.log = console.info = function(){
+            if (oLog){
+                oLog.call(console, ...arguments);
+            }
+            cb(arguments, "info");
+        };
 
-    var write = function (message, el, type){ 
-      if (typeof message == 'object') {
-        el.innerHTML += '<span class="console console-' + type + '">' + (JSON && JSON.stringify ? JSON.stringify(message) : message) + '</span><br />';
-      } else {
-        el.innerHTML += '<span class="console console-' + type + '">' + message + '</span><br />';
-      }
-    } 
-  }
+        console.warn = function(){
+            if (oWarn){
+                oWarn.call(console, ...arguments);
+            }
+            cb(arguments, "warn");
+        };
+
+        console.error = function(){
+            if (oErr){
+                oErr.call(console, ...arguments);
+            }
+            cb(arguments, "error");
+        };
+    }
 }
