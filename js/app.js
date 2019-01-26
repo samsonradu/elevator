@@ -79,10 +79,10 @@ render((
     <E levels='7'/>
 ), document.getElementById("content"))
 
-Consolify.init(function(args, type){
+Consolify.init(function(category, args){
     var el = document.getElementById("console");
     if (typeof args !== "String"){
         args = JSON.stringify(args);
     }
-    $(el).append("<div>" + type + " " + args + "</div>");
+    $(el).append("<div>" + category + " " + args + "</div>");
 });
