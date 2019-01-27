@@ -2,6 +2,7 @@ import React from 'react'
 import elevator from './stores/elevator.js';
 import Actions from './actions/command.js';
 import { render } from 'react-dom'
+import Consolify from 'Consolify';
 
 const E = React.createClass({
     componentWillMount() {
@@ -79,10 +80,10 @@ render((
     <E levels='7'/>
 ), document.getElementById("content"))
 
-Consolify.init(function(category, args){
+Consolify.bind(function(category, args){
     var el = document.getElementById("console");
     if (typeof args !== "String"){
         args = JSON.stringify(args);
     }
     $(el).append("<div>" + category + " " + args + "</div>");
-});
+}, true);
