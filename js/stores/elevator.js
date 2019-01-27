@@ -6,6 +6,12 @@ var Dispatcher = require('../dispatcher/dispatcher.js');
 const LEVEL_TIMEOUT = 3000; //time to move one floor
 const DOOR_TIMEOUT = 5000; //time to wait for inner commands when doors open
 
+const DIRECTION_UP = 'up';
+const DIRECTION_DOWN = 'down';
+
+const TYPE_INNER = 'inner';
+const TYPE_OUTER = 'outer';
+
 class Elevator extends EventEmitter {
 
     emitChange() {
@@ -57,7 +63,7 @@ class Elevator extends EventEmitter {
      * @return
      */ 
     offload(type, level, direction){
-        if (type === 'inner')
+        if (type === TYPE_INNER)
             this.state.inner = this.state.inner.filter(function(item){
                 return item.level !== level;
             });
@@ -77,7 +83,7 @@ class Elevator extends EventEmitter {
      * @return command || null;
      */ 
      get(type, level, direction){
-        if (type === 'inner')
+        if (type === TYPE_INNER)
             var match = this.state.inner.filter(function(item){
                 return item.level === level;
             });
@@ -105,7 +111,7 @@ class Elevator extends EventEmitter {
 
         console.log("[COMMAND][" + type.toUpperCase() + "] button to " + level + " pressed");
 
-        if (type === 'inner'){
+        if (type === TYPE_INNER){
             this.state.inner.push({
                 'level' : level,
                 'type' : type
@@ -151,12 +157,12 @@ class Elevator extends EventEmitter {
 
             // Optimisation! Can we do a longer run? 
             // For instance if there s someone going down from a higher floor than this one, we can pick that one up first and service both levels
-            if (command.type === 'outer'){
+            if (command.type === TYPE_OUTER){
                 var optimize = false;
-                if (command.direction === 'up'){
+                if (command.direction === DIRECTION_UP){
                     //try to see if there are outer commands from below
                     var matches = this.state.outer.filter(function(item){
-                        return item.level < command.level && item.direction === 'up';
+                        return item.level < command.level && item.direction === DIRECTION_UP;
                     });
                     matches.sort(function(a, b){
                         return a.level < b.level ? -1 : 1;
@@ -168,7 +174,7 @@ class Elevator extends EventEmitter {
                 else {
                     //try to see if there are outer commands from above
                     var matches = this.state.outer.filter(function(item){
-                        return item.level > command.level && item.direction === 'down';
+                        return item.level > command.level && item.direction === DIRECTION_DOWN;
                     });
                     matches.sort(function(a, b){
                         return a.level > b.level ? -1 : 1;
@@ -213,7 +219,7 @@ class Elevator extends EventEmitter {
         
         //start moving towards the target
         this.state.open = false;
-        var direction = this.state.level > command.level ? 'down' : 'up';
+        var direction = this.state.level > command.level ? DIRECTION_DOWN : DIRECTION_UP;
         console.log("[INFO] Going " + direction);
 
         Dispatcher.dispatch({
@@ -222,11 +228,11 @@ class Elevator extends EventEmitter {
 
         //the elevator needs to be realistic and have a certain delay between floors
         setTimeout(function(){
-            self.state.level += (direction === 'up' ? 1 : -1);
+            self.state.level += (direction === DIRECTION_UP ? 1 : -1);
             console.log("[INFO] Reaching " + self.state.level);
 
             //if we need to make a middle stop we do it here, delaying our leave. It's possible that someone wants to get down or that someone from the outside is also going in the same direction so we pick them up
-            var found = self.get('inner', self.state.level) || self.get('outer', self.state.level, direction); 
+            var found = self.get(TYPE_INNER, self.state.level) || self.get(TYPE_OUTER, self.state.level, direction); 
             if (found){
                 console.log("[INFO] Opening doors at level: " + self.state.level);
                 self.state.open = true;
