@@ -37,12 +37,17 @@ a.active {
     height: 40px;
     line-height: 34px;
 }
+
+.inner-block a:hover {
+    background-color: #ff6600;
+    color: white;
+}
 .inner-block a {
     font-size: 16px;
     line-height: 12px;
     margin-right: 2px;
     background-color: white;
-    border-radius: 10px;
+    border-radius: 12px;
 	padding-left: 6px;
     padding-top: 2px;
     padding-bottom: 2px;
