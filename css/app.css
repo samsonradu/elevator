@@ -34,11 +34,8 @@ a.active {
     position: absolute; left: -20px;
 }
 .inner-block {
-    position: absolute;
-    height: 20px;
-    line-height: 24px;
-    bottom: 15px;
-    left: 5px;
+    height: 40px;
+    line-height: 34px;
 }
 .inner-block a {
     font-size: 16px;
