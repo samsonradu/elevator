@@ -54,9 +54,9 @@ const E = React.createClass({
             arr.push(
                 <div className="block" key={i}>
                     <div className='outer-block'>
-                        <a className={classUp} onClick={self.handleCommand} data-type='outer' data-level={i} data-direction='up'><i className='glyphicon glyphicon-chevron-up'></i></a>
+                        <a className={classUp} onClick={self.handleCommand} data-type='outer' data-level={i} title='Go up' data-direction='up'><i className='glyphicon glyphicon-chevron-up'></i></a>
                         <br></br>
-                        <a className={classDown} onClick={self.handleCommand} data-type='outer' data-level={i} data-direction='down'><i className='glyphicon glyphicon-chevron-down'></i></a>
+                        <a className={classDown} onClick={self.handleCommand} data-type='outer' data-level={i} title='Go down' data-direction='down'><i className='glyphicon glyphicon-chevron-down'></i></a>
                     </div>
                     {lvl}
                     <div className='clear'></div>
@@ -83,7 +83,7 @@ render((
 Consolify.bind(function(category, args){
     var el = document.getElementById("console");
     if (typeof args !== "String"){
-        args = JSON.stringify(args);
+        args = JSON.stringify(Object.values(args));
     }
     $(el).append("<div>" + category + " " + args + "</div>");
 }, true);
