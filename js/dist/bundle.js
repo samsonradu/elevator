@@ -123,13 +123,13 @@ var E = _react2.default.createClass({
                     { className: 'outer-block' },
                     _react2.default.createElement(
                         'a',
-                        { className: classUp, onClick: self.handleCommand, 'data-type': 'outer', 'data-level': i, 'data-direction': 'up' },
+                        { className: classUp, onClick: self.handleCommand, 'data-type': 'outer', 'data-level': i, title: 'Go up', 'data-direction': 'up' },
                         _react2.default.createElement('i', { className: 'glyphicon glyphicon-chevron-up' })
                     ),
                     _react2.default.createElement('br', null),
                     _react2.default.createElement(
                         'a',
-                        { className: classDown, onClick: self.handleCommand, 'data-type': 'outer', 'data-level': i, 'data-direction': 'down' },
+                        { className: classDown, onClick: self.handleCommand, 'data-type': 'outer', 'data-level': i, title: 'Go down', 'data-direction': 'down' },
                         _react2.default.createElement('i', { className: 'glyphicon glyphicon-chevron-down' })
                     )
                 ),
@@ -154,7 +154,7 @@ var E = _react2.default.createClass({
 _Consolify2.default.bind(function (category, args) {
     var el = document.getElementById("console");
     if (typeof args !== "String") {
-        args = JSON.stringify(args);
+        args = JSON.stringify(Object.values(args));
     }
     $(el).append("<div>" + category + " " + args + "</div>");
 }, true);
