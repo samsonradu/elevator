@@ -21,7 +21,10 @@ a.active {
 .bullet-blue {
    background-color: #00D8FF;
 }
- 
+
+#content {
+    padding-top: 25px;
+}
 
 .container {
     padding-top: 5px;
