@@ -4,6 +4,24 @@ a {
 a.active {
     color: #EF5D5D;
 }
+
+#help {
+    margin-top: 5px; margin-bottom: 5px;
+}
+
+.bullet {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+}
+.bullet-green {
+   background-color: 95CE5E;
+}
+.bullet-blue {
+   background-color: 00D8FF;
+}
+ 
+
 .container {
     padding-top: 5px;
 }
