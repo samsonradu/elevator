@@ -1,4 +1,4 @@
-import {ActionTypes} from '../actions/types.js';
+import { ActionTypes } from '../actions/types.js';
 
 var EventEmitter = require('events').EventEmitter;
 var Dispatcher = require('../dispatcher/dispatcher.js');
@@ -17,7 +17,7 @@ class Elevator extends EventEmitter {
     emitChange() {
         this.emit(ActionTypes.UPDATE);
     }
- 
+
     /**
      * @param {function} callback
      */
@@ -32,21 +32,21 @@ class Elevator extends EventEmitter {
         this.removeListener(ActionTypes.UPDATE, callback);
     }
 
-    constructor(levels){
+    constructor(levels) {
         super();
 
         this.levels = levels;
         this.state = {
-            'level' : 0,
-            'open' : true,
-            'running' : null,
-            'inner' : [], //one queue for the commands triggered inside the elevator (these are more important than outside ones)
-            'outer' : [], //one queue for the commands triggered from the outside
+            level: 0,
+            open: true,
+            running: null,
+            inner: [], //one queue for the commands triggered inside the elevator (these are more important than outside ones)
+            outer: [], //one queue for the commands triggered from the outside
         };
 
         let self = this;
-        this.on(ActionTypes.EVAL, function(){
-            setTimeout(function(){
+        this.on(ActionTypes.EVAL, function () {
+            setTimeout(function () {
                 self.evaluate();
             }, 1000);
         });
@@ -61,17 +61,18 @@ class Elevator extends EventEmitter {
      * @param string direction (up/down)
      *
      * @return
-     */ 
-    offload(type, level, direction){
-        if (type === TYPE_INNER)
-            this.state.inner = this.state.inner.filter(function(item){
+     */
+    offload(type, level, direction) {
+        if (type === TYPE_INNER) {
+            this.state.inner = this.state.inner.filter(function (item) {
                 return item.level !== level;
             });
-        else 
-            this.state.outer = this.state.outer.filter(function(item){
+        }
+        else {
+            this.state.outer = this.state.outer.filter(function (item) {
                 return item.level !== level || item.direction !== direction;
             });
-
+        }
     }
 
     /**
@@ -81,16 +82,18 @@ class Elevator extends EventEmitter {
      * @param string direction
      *
      * @return command || null;
-     */ 
-     get(type, level, direction){
-        if (type === TYPE_INNER)
-            var match = this.state.inner.filter(function(item){
+     */
+    get(type, level, direction) {
+        if (type === TYPE_INNER) {
+            let match = this.state.inner.filter(function (item) {
                 return item.level === level;
             });
-        else
-            var match = this.state.outer.filter(function(item){
+        }
+        else {
+            let match = this.state.outer.filter(function (item) {
                 return item.level === level && item.direction === direction;
             });
+        }
 
         return match.shift();
     }
@@ -101,39 +104,39 @@ class Elevator extends EventEmitter {
      * @param integer level
      * @param string direction (up/down)
      *
-     */ 
-    command(type, level, direction){
+     */
+    command(type, level, direction) {
         if (level > (this.levels - 1) || level < 0) //invalid command
             return;
-        if (level === this.state.level){
+        if (level === this.state.level) {
             return;
         }
 
         console.log("[COMMAND][" + type.toUpperCase() + "] button to " + level + " pressed");
 
-        if (type === TYPE_INNER){
+        if (type === TYPE_INNER) {
             this.state.inner.push({
-                'level' : level,
-                'type' : type
+                'level': level,
+                'type': type
             });
         }
         else {
             this.state.outer.push({
-                'level' : level,
-                'direction' : direction,
-                'type' : type
+                'level': level,
+                'direction': direction,
+                'type': type
             });
         }
 
 
         //update in the next event loop
-        setTimeout(function(){
+        setTimeout(function () {
             Dispatcher.dispatch({
                 actionType: ActionTypes.UPDATE
             });
         }, 0);
 
-        if (!this.state.running){
+        if (!this.state.running) {
             this.emit(ActionTypes.EVAL);
         }
     }
@@ -143,48 +146,47 @@ class Elevator extends EventEmitter {
      * or if it's optimal to stop and pick/drop someone
      * @param integer level
      * @param function cb the "move" function calling itself
-     *
-     */ 
-    move(command, cb){
-        var self = this;
+     */
+    move(command, cb) {
+        let self = this;
 
         Dispatcher.dispatch({
             actionType: ActionTypes.UPDATE
         });
 
-        //if we reached our level 
-        if (this.state.level === command.level){
+        // if we reached our level 
+        if (this.state.level === command.level) {
 
-            // Optimisation! Can we do a longer run? 
+            // Optimisation time! Can we do a longer run? 
             // For instance if there s someone going down from a higher floor than this one, we can pick that one up first and service both levels
-            if (command.type === TYPE_OUTER){
-                var optimize = false;
-                if (command.direction === DIRECTION_UP){
+            if (command.type === TYPE_OUTER) {
+                let optimize = false;
+                if (command.direction === DIRECTION_UP) {
                     //try to see if there are outer commands from below
-                    var matches = this.state.outer.filter(function(item){
+                    let matches = this.state.outer.filter(function (item) {
                         return item.level < command.level && item.direction === DIRECTION_UP;
                     });
-                    matches.sort(function(a, b){
+                    matches.sort(function (a, b) {
                         return a.level < b.level ? -1 : 1;
-                    }); 
+                    });
                     console.log("Matches for up", matches);
                     optimize = matches.shift();
 
                 }
                 else {
                     //try to see if there are outer commands from above
-                    var matches = this.state.outer.filter(function(item){
+                    let matches = this.state.outer.filter(function (item) {
                         return item.level > command.level && item.direction === DIRECTION_DOWN;
                     });
-                    matches.sort(function(a, b){
+                    matches.sort(function (a, b) {
                         return a.level > b.level ? -1 : 1;
-                    }); 
+                    });
                     console.log("Matches for down", matches);
                     optimize = matches.shift();
-                } 
+                }
 
-                if (optimize){
-                    this.state.outer = this.state.outer.filter(function(item){
+                if (optimize) {
+                    this.state.outer = this.state.outer.filter(function (item) {
                         return item.level !== optimize.level;
                     });
 
@@ -199,27 +201,27 @@ class Elevator extends EventEmitter {
 
             //every time we reach a desired level we have to wait a couple of seconds for 'inner' commands 
             console.log("[INFO] Opening doors at destination: " + command.level);
-            self.state.open = true; 
+            self.state.open = true;
 
             Dispatcher.dispatch({
                 actionType: ActionTypes.UPDATE
             });
 
-            setTimeout(function(){
+            setTimeout(function () {
                 self.state.running = null;
                 //anything else to do? 
-                if (self.state.inner.length > 0 || self.state.outer.length > 0){
+                if (self.state.inner.length > 0 || self.state.outer.length > 0) {
                     self.emit(ActionTypes.EVAL);
                 }
             }, DOOR_TIMEOUT);
-            
+
             //done here
             return;
         }
-        
+
         //start moving towards the target
         this.state.open = false;
-        var direction = this.state.level > command.level ? DIRECTION_DOWN : DIRECTION_UP;
+        let direction = this.state.level > command.level ? DIRECTION_DOWN : DIRECTION_UP;
         console.log("[INFO] Going " + direction);
 
         Dispatcher.dispatch({
@@ -227,13 +229,16 @@ class Elevator extends EventEmitter {
         });
 
         //the elevator needs to be realistic and have a certain delay between floors
-        setTimeout(function(){
+        setTimeout(function () {
             self.state.level += (direction === DIRECTION_UP ? 1 : -1);
             console.log("[INFO] Reaching " + self.state.level);
 
-            //if we need to make a middle stop we do it here, delaying our leave. It's possible that someone wants to get down or that someone from the outside is also going in the same direction so we pick them up
-            var found = self.get(TYPE_INNER, self.state.level) || self.get(TYPE_OUTER, self.state.level, direction); 
-            if (found){
+            /* if we need to make a middle stop we do it here, delaying our leave. 
+             * It's possible that someone wants to get off or that someone outside wants to go in the same direction so we     
+             * stop for a pick-up 
+             */
+            let found = self.get(TYPE_INNER, self.state.level) || self.get(TYPE_OUTER, self.state.level, direction);
+            if (found) {
                 console.log("[INFO] Opening doors at level: " + self.state.level);
                 self.state.open = true;
                 self.offload(found.type, self.state.level, found.direction);
@@ -242,7 +247,7 @@ class Elevator extends EventEmitter {
                     actionType: ActionTypes.UPDATE
                 });
 
-                setTimeout(function(){
+                setTimeout(function () {
                     cb(command, cb);
                 }, DOOR_TIMEOUT);
             }
@@ -265,13 +270,13 @@ class Elevator extends EventEmitter {
      *      It's the command to 0 that's picked up, however at each level we check if there are other inner commands queued that we can take care of.
      *      If yes, we just delay the next move call by 5 seconds and "open the doors". 
      *            
-     */ 
-    evaluate(){
+     */
+    evaluate() {
         Dispatcher.dispatch({
             actionType: ActionTypes.UPDATE
         });
 
-        if (this.state.running){
+        if (this.state.running) {
             //nothing to pick;
             return;
         }
@@ -279,14 +284,14 @@ class Elevator extends EventEmitter {
         //inner queue has priority
         if (this.state.inner.length) {
             //we have people inner the elevator and they pressed buttons
-            var current = this.state.inner.shift();
+            let current = this.state.inner.shift();
             console.log("[PROCESS][INNER] Picked command to " + current.level);
             this.state.running = current;
             this.move(current, this.move.bind(this));
         }
-        else if (this.state.outer.length){
+        else if (this.state.outer.length) {
             //elevator is called from the outer, lets pick up the command
-            var current = this.state.outer.shift();
+            let current = this.state.outer.shift();
             console.log("[PROCESS][OUTER] Picked command to " + current.level);
             this.state.running = current;
             this.move(current, this.move.bind(this));
@@ -296,10 +301,10 @@ class Elevator extends EventEmitter {
 
 let elevator = new Elevator();
 
-Dispatcher.register(function(action) {
-    switch (action.actionType){
-        case ActionTypes.UPDATE: 
-            elevator.emitChange();  
+Dispatcher.register(function (action) {
+    switch (action.actionType) {
+        case ActionTypes.UPDATE:
+            elevator.emitChange();
             break;
         case ActionTypes.COMMAND:
             elevator.command(action.type, action.level, action.direction);
